@@ -1,0 +1,100 @@
+﻿@page "/Jugadores/Index"
+
+@inject JugadoresServices JugadoresServices
+@inject NavigationManager navigationManager
+
+<PageTitle>Registro de Jugadores</PageTitle>
+
+<div class="container mt-4">
+    <div class="card shadow-lg">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="custom-title mb-0">Registro de Jugadores</h5>
+            
+        </div>
+        <div class="EspacioArriba"></div>
+        <a href="/Jugadores/Create" class="btn btn-primary">
+            <span class="BotonCrear"></span> Crear Jugador
+        </a>
+        <div class="EspacioArriba"></div>
+        <div class="card-body">
+            <!-- Filtros y búsqueda -->
+            <div class="row">
+                <div class="col-md-6">
+                    <label for="valorFiltro">Buscar:</label>
+                    <input type="text" class="form-control" id="valorFiltro" @bind="ValorFiltro" placeholder="Escribe para buscar..." />
+                </div>
+
+                <div class="col-md-2 d-flex align-items-end">
+                    <button class="btn btn-success w-100" @onclick="Buscar">Buscar</button>
+                </div>
+            </div>
+            <div class="EspacioArriba"></div>
+
+            <!-- Tabla de Jugadores -->
+            <table class="table table-striped table-hover mt-4">
+                <thead>
+                    <tr>
+                        <th class="custom-th-spacing">JugadorId</th>
+                        <th class ="custom-th-spacing">Nombre</th>
+                        <th class="custom-th-spacing">Partidas</th>
+                        <th class="custom-th-spacing">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var jugador in ListaJugadores)
+                    {
+                        <tr>
+                            <td>@jugador.JugadorId</td>
+                            <td>@jugador.Nombres</td>
+                            <td>@jugador.Partidas</td>
+                            <td>
+                                <a href="/Jugadores/Edit/@jugador.JugadorId" class="BotonCrear">
+                                    <span class="bi bi-pencil"></span> Editar
+                                </a>
+                                <button class="btn btn-danger btn-sm custom-btn-spacing" @onclick="() => EliminarJugador(jugador.JugadorId)">
+                                    <span class="bi bi-trash"></span> Eliminar
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="EspacioArriba"></div>
+        <div class="card-footer d-flex justify-content-between align-items-center pt-4">
+            <label>Total Jugadores: @ListaJugadores.Count()</label>
+            <label>Total Partidas: @ListaJugadores.Sum(j => j.Partidas)</label>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Jugadores> ListaJugadores { get; set; } = new List<Jugadores>();
+    private string ValorFiltro { get; set; } = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ListaJugadores = await JugadoresServices.Listar(criterio: p => p.JugadorId > 0);
+    }
+
+    private async Task Buscar()
+    {
+        if (!string.IsNullOrEmpty(ValorFiltro))
+        {
+            ListaJugadores = await JugadoresServices.Listar(criterio: p => p.Nombres.Contains(ValorFiltro));
+        }
+        else
+        {
+            ListaJugadores = await JugadoresServices.Listar(criterio: p => p.JugadorId > 0);
+        }
+    }
+
+    private async Task EliminarJugador(int jugadorId)
+    {
+        var eliminado = await JugadoresServices.Eliminar(jugadorId);
+        if (eliminado)
+        {
+            ListaJugadores = await JugadoresServices.Listar(criterio: p => p.JugadorId > 0);  // Refresh list
+        }
+    }
+}

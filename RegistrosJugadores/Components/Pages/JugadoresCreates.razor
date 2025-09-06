@@ -1,0 +1,72 @@
+﻿@page "/Jugadores/Create"
+
+@using RegistrosJugadores.Models
+@using Microsoft.AspNetCore.Components.Forms
+
+@inject NavigationManager Navigation
+@inject RegistrosJugadores.Services.JugadoresServices JugadoresService
+@rendermode InteractiveServer
+
+
+
+
+<EditForm Model="@Jugador" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="container">
+        <div class="card shadow-lg">
+            <div class="card-header text-center">
+                <h5 class="custom-title">Crear Jugador</h5>
+            </div>
+
+            <div class="card-body">
+
+                <!-- JugadorId (ahora editable) -->
+                <div class="mb-3">
+                    <label class="form-label"><strong>Jugador Id</strong></label>
+                    <InputNumber @bind-Value="Jugador.JugadorId" class="form-control" readonly />
+                    <ValidationMessage For="@(() => Jugador.JugadorId)" />
+                </div>
+
+                <div class="EspacioArribaPequeno"></div>
+                <!-- Nombres -->
+                <div class="mb-3">
+                    <label class="form-label"><strong>Nombres</strong></label>
+                    <InputText @bind-Value="Jugador.Nombres" class="form-control" />
+                    <ValidationMessage For="@(() => Jugador.Nombres)" />
+                </div>
+                <div class="EspacioArribaPequeno"></div>
+                <!-- Partidas -->
+                <div class="mb-3">
+                    <label class="form-label"><strong>Partidas</strong></label>
+                    <InputNumber @bind-Value="Jugador.Partidas" class="form-control" />
+                    <ValidationMessage For="@(() => Jugador.Partidas)" />
+                </div>
+                <div class="EspacioArriba"></div>
+            </div>
+
+            <div class="card-footer text-center mt-2">
+                <a href="/" class="btn btn-secondary">
+                    <span class="bi bi-arrow-left"></span> Volver
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <span class="bi bi-floppy"></span> Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    // OJO: No uses [Parameter] aquí; es un modelo local del formulario
+    private Jugadores Jugador { get; set; } = new();
+
+    private async Task Guardar()
+    {
+        // Guarda y vuelve al Index
+        var ok = await JugadoresService.Insertar(Jugador);
+        if (ok)
+            Navigation.NavigateTo("/Jugadores/Index");
+    }
+}
