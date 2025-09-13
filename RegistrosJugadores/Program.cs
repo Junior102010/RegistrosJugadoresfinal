@@ -2,6 +2,7 @@ using RegistrosJugadores.Components;
 using Microsoft.EntityFrameworkCore;
 using RegistrosJugadores.DAL;
 using RegistrosJugadores.Services;
+using Blazored.Toast;
 
 
 namespace RegistrosJugadores
@@ -15,12 +16,13 @@ namespace RegistrosJugadores
             // Add services to the container.
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
-
+            var builders = WebApplication.CreateBuilder(args);
             var ConStr = builder.Configuration.GetConnectionString("SqlConStr");
 
             builder.Services.AddDbContextFactory<Contexto>(options => options.UseSqlServer(ConStr));
 
             builder.Services.AddScoped<JugadoresServices>();
+            builder.Services.AddScoped<PartidasServices>();
             var app = builder.Build();
 
             

@@ -9,6 +9,40 @@ namespace RegistrosJugadores.DAL
         {
         }
         public DbSet<Jugadores> Jugadores { get; set; }
+
+        public DbSet<Partidas> Partidas { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Partidas>(entity =>
+            {
+                // Jugador1 (obligatorio)
+                entity.HasOne(p => p.Jugador1)
+                      .WithMany()
+                      .HasForeignKey(p => p.Jugador1Id)
+                      .OnDelete(DeleteBehavior.NoAction);   // <- sin cascada
+
+                // Jugador2 (opcional)
+                entity.HasOne(p => p.Jugador2)
+                      .WithMany()
+                      .HasForeignKey(p => p.Jugador2Id)
+                      .OnDelete(DeleteBehavior.NoAction);   // <- sin cascada
+
+                // Ganador (opcional)
+                entity.HasOne(p => p.Ganador)
+                      .WithMany()
+                      .HasForeignKey(p => p.GanadorId)
+                      .OnDelete(DeleteBehavior.NoAction);   // <- sin cascada
+
+                // TurnoJugador (obligatorio)
+                entity.HasOne(p => p.TurnoJugador)
+                      .WithMany()
+                      .HasForeignKey(p => p.TurnoJugadorId)
+                      .OnDelete(DeleteBehavior.NoAction);   // <- sin cascada
+            });
+        }
     }
     
 }

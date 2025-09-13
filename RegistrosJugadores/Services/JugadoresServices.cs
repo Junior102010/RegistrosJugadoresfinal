@@ -7,14 +7,11 @@ namespace RegistrosJugadores.Services
 {
     public class JugadoresServices(IDbContextFactory<Contexto> DbFactory)
     {
-
         public async Task<bool> Guardar(Jugadores jugador)
         {
             if (!await Existe(jugador.JugadorId))
             {
                 return await Insertar(jugador);
-
-
             }
 
             else
@@ -65,5 +62,6 @@ namespace RegistrosJugadores.Services
             return await contexto.Jugadores.Where(criterio).AsNoTracking().ToListAsync();
 
         }
+
     }
 }

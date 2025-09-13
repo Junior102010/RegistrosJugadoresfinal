@@ -2,8 +2,8 @@
 
 @using RegistrosJugadores.Models
 @inject RegistrosJugadores.Services.JugadoresServices jugadoresService
-@inject Blazored.Toast.Services.IToastService toastService
 @inject NavigationManager navigationManager
+@rendermode InteractiveServer
 
 <PageTitle>Modificar</PageTitle>
 
@@ -18,6 +18,14 @@
             </div>
 
             <div class="card-body">
+                <!-- Mensaje -->
+                @if (!string.IsNullOrEmpty(mensaje))
+                {
+                    <div class="alert @(tipoMensaje == "success" ? "alert-success" : "alert-danger")">
+                        @mensaje
+                    </div>
+                }
+
                 <!-- Nombres -->
                 <div class="mb-3">
                     <label class="form-label"><strong>Nombres</strong></label>
@@ -32,14 +40,13 @@
                     <ValidationMessage For="@(() => Jugador.Partidas)" />
                 </div>
             </div>
-
-            <div class="card-footer text-center mt-2">
+            <div class="EspacioArriba" </div>
+            <div class="custom-th-spacing">
                 <a href="/Jugadores/Index" class="btn btn-secondary">
                     <span class="bi bi-arrow-left"></span> Volver
                 </a>
-                <!-- No pongas @onclick aquí porque ya tienes OnValidSubmit -->
-                <button type="submit" class="btn btn-primary bi bi-floppy"> Modificar</button>
-                <button type="button" class="btn btn-danger bi bi-trash" @onclick="Eliminar"> Eliminar</button>
+                <button type="submit" class="custom-btn-spacing"> Modificar</button>
+                <button type="button" class="btn btn-danger bi bi-trash m-3" @onclick="async () => await Eliminar()"> Eliminar</button>
             </div>
         </div>
     </div>
@@ -51,22 +58,34 @@
 
     public Jugadores Jugador { get; set; } = new();
 
+    private string? mensaje;
+    private string? tipoMensaje;
+
     protected override async Task OnInitializedAsync()
     {
         var encontrado = await jugadoresService.Buscar(JugadorId);
         if (encontrado is not null)
             Jugador = encontrado;
         else
-            toastService.ShowError("No se encontró el jugador.");
+        {
+            mensaje = "No se encontró el jugador.";
+            tipoMensaje = "error";
+        }
     }
 
     public async Task Modificar()
     {
         var ok = await jugadoresService.Guardar(Jugador);
         if (ok)
-            toastService.ShowSuccess("Se ha modificado correctamente");
+        {
+            mensaje = "Se ha modificado correctamente";
+            tipoMensaje = "success";
+        }
         else
-            toastService.ShowError("No se ha podido modificar correctamente");
+        {
+            mensaje = "No se ha podido modificar correctamente";
+            tipoMensaje = "error";
+        }
     }
 
     private async Task Eliminar()
@@ -74,12 +93,14 @@
         var ok = await jugadoresService.Eliminar(Jugador.JugadorId);
         if (ok)
         {
-            toastService.ShowSuccess("Se ha eliminado correctamente");
+            mensaje = "Se ha eliminado correctamente";
+            tipoMensaje = "success";
             navigationManager.NavigateTo("/Jugadores/Index");
         }
         else
         {
-            toastService.ShowError("No se ha podido eliminar correctamente");
+            mensaje = "No se ha podido eliminar correctamente";
+            tipoMensaje = "error";
         }
     }
 }

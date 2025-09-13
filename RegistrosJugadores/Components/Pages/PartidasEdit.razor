@@ -1,0 +1,149 @@
+﻿@page "/Partidas/Edit/{PartidaId:int}"
+
+@using RegistrosJugadores.Models
+@inject RegistrosJugadores.Services.PartidasServices partidasServices
+@inject RegistrosJugadores.Services.JugadoresServices jugadoresServices
+@inject NavigationManager navigationManager
+@rendermode InteractiveServer
+
+<PageTitle>Modificar</PageTitle>
+
+<EditForm Model="@Partida" OnValidSubmit="Modificar">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="container">
+        <div class="card shadow-lg">
+            <div class="card-header text-center">
+                <h5 class="card-title">Modificar Partida</h5>
+            </div>
+
+            <div class="card-body">
+                <!-- Mensajesczxczxcxc -->
+                @if (!string.IsNullOrEmpty(mensaje))
+                {
+                    <div class="alert @(tipoMensaje == "success" ? "alert-success" : "alert-danger")">
+                        @mensaje
+                    </div>
+                }
+
+                <div class="mb-3">
+                    <label class="form-label"><strong>Jugador 1</strong></label>
+                    <InputSelect @bind-Value="Partida.Jugador1Id" class="form-control">
+                        <option value="">-- Selecciona un jugador --</option>
+                        @foreach (var jugador in ListaJugadores)
+                        {
+                            <option value="@jugador.JugadorId">@jugador.Nombres</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="@(() => Partida.Jugador1Id)" />
+                </div>
+                <div class="EspacioArriba"></div>
+
+                <!-- Jugador 2 -->
+                <div class="mb-3">
+                    <label class="form-label"><strong>Jugador 2</strong></label>
+                    <InputSelect @bind-Value="Partida.Jugador2Id" class="form-control">
+                        <option value="">-- Selecciona un jugador --</option>
+                        @foreach (var jugador in ListaJugadores)
+                        {
+                            <option value="@jugador.JugadorId">@jugador.Nombres</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="@(() => Partida.Jugador2Id)" />
+                    <ValidationMessage For="@(() => Partida.TurnoJugador)" />
+                </div>
+                <div class="EspacioArriba"></div>
+                
+
+                
+                <!-- Partidas -->
+                <div class="mb-3">
+                    <label class="form-label"><strong>Estado</strong></label>
+                    <InputSelect @bind-Value="Partida.EstadoPartida" class="form-control">
+                        <option value="">-- Selecciona un estado --</option>
+                        <option value="En curso">En curso</option>
+                        <option value="Final">Final</option>
+                    </InputSelect>
+                    <ValidationMessage For="@(() => Partida.EstadoPartida)" />
+                </div>
+                <div class="EspacioArribaPequeno"></div>
+
+                <div class="mb-3">
+                    <label class="form-label"><strong>Ganador</strong></label>
+                    <InputSelect @bind-Value="Partida.GanadorId" class="form-control">
+                        <option value="">-- Selecciona un Ganador --</option>
+                        <option value="1">Jugador 1</option>
+                        <option value="2">Jugador 2</option>
+                    </InputSelect>
+                    <ValidationMessage For="@(() => Partida.EstadoPartida)" />
+                </div>
+                <div class="EspacioArribaPequeno"></div>
+            </div>
+            <div class="EspacioArriba" </div>
+            <div class="custom-th-spacing">
+                <a href="/Partidas/Index" class="btn btn-secondary">
+                    <span class="bi bi-arrow-left"></span> Volver
+                </a>
+                <button type="submit" class="custom-btn-spacing"> Modificar</button>
+                <button type="button" class="btn btn-danger bi bi-trash m-3" @onclick="async () => await Eliminar()"> Eliminar</button>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter]
+    public int PartidaId { get; set; }
+
+    public Partidas Partida { get; set; } = new();
+    private List<Jugadores> ListaJugadores { get; set; } = new();
+
+    
+    private string? mensaje;
+    private string? tipoMensaje;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ListaJugadores = await jugadoresServices.Listar(criterio: p => p.JugadorId > 0);
+        var encontrado = await partidasServices.Buscar(PartidaId);
+        if (encontrado is not null)
+            Partida = encontrado;
+        else
+        {
+            mensaje = "No se encontró el jugador.";
+            tipoMensaje = "error";
+        }
+    }
+
+    public async Task Modificar()
+    {
+        var ok = await partidasServices.Guardar(Partida);
+        if (ok)
+        {
+            mensaje = "Se ha modificado correctamente";
+            tipoMensaje = "success";
+        }
+        else
+        {
+            mensaje = "No se ha podido modificar correctamente";
+            tipoMensaje = "error";
+        }
+    }
+
+    private async Task Eliminar()
+    {
+        var ok = await partidasServices.Eliminar(Partida.PartidaId);
+        if (ok)
+        {
+            mensaje = "Se ha eliminado correctamente";
+            tipoMensaje = "success";
+            navigationManager.NavigateTo("/Partidas/Index");
+        }
+        else
+        {
+            mensaje = "No se ha podido eliminar correctamente";
+            tipoMensaje = "error";
+        }
+    }
+}

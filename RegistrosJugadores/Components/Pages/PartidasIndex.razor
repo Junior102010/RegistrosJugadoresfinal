@@ -1,0 +1,139 @@
+﻿@page "/Partidas/Index"
+
+@inject PartidasServices PartidasServices
+@inject NavigationManager navigationManager
+@inject RegistrosJugadores.Services.JugadoresServices jugadoresService
+@rendermode InteractiveServer
+
+<PageTitle>Registro de Jugadores</PageTitle>
+
+<div class="container mt-4">
+    <div class="card shadow-lg">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="custom-title mb-0">Registro de Jugadores</h5>
+
+        </div>
+        <div class="EspacioArriba"></div>
+        <a href="/Partidas/Create" class="BotonCrear">
+            <span class="BotonCrear"></span> Crear Partida
+        </a>
+        <div class="EspacioArriba"></div>
+        <div class="card-body">
+            <!-- Filtros y búsqueda -->
+            <div class="row">
+                <div class="col-md-6">
+                    <label for="valorFiltro">Buscar:</label>
+                    <input type="text" class="form-control" id="valorFiltro" @bind="ValorFiltro" placeholder="Escribe para buscar..." />
+                </div>
+
+                <div class="col-md-2 d-flex align-items-end">
+                    <button class="btn btn-success w-100" @onclick="async () => await Buscar()">Buscar</button>
+                </div>
+            </div>
+            <div class="EspacioArriba"></div>
+
+
+            <!-- Tabla de Partidas -->
+            <table class="table table-striped table-hover mt-4">
+                <thead>
+                    <tr>
+                        <th class="custom-th-spacing">PartidaId</th>
+                        <th class="custom-th-spacing">Jugador 1</th>
+                        <th class="custom-th-spacing">Jugador 2</th>
+                        <th class="custom-th-spacing">Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var partida in ListaPartidas)
+                    {
+                        string jugador1 = NombresId(@partida.Jugador1Id);
+                        string jugador2 = NombresId(@partida.Jugador2Id);
+                        <tr>
+                            <td>@partida.PartidaId</td>
+                            <td>@jugador1</td>
+                            <td>@jugador2</td>
+                            <td>
+                                @partida.EstadoPartida
+                                @* <a href="/Jugadores/Edit/@jugador.JugadorId" class="BotonCrear">
+                                    <span class="bi bi-pencil"></span> Editar
+                                </a> *@
+
+                            </td>
+
+                            <td>
+                                <a href="/Partidas/Edit/@partida.PartidaId" class="BotonCrear">
+                                    <span class="bi bi-pencil"></span> Editar
+                                </a>
+
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="EspacioArriba"></div>
+        <div class="card-footer d-flex justify-content-between align-items-center pt-4">
+            <label>Total Jugadores: @ListaPartidas.Count()</label>
+        </div>
+    </div>
+</div>
+
+@code {
+    
+
+    private List<Partidas> ListaPartidas { get; set; } = new List<Partidas>();
+    private string ValorFiltro { get; set; } = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ListaPartidas = await PartidasServices.Listar(criterio: p => p.PartidaId > 0);
+        ListaJugadores = await jugadoresService.Listar(criterio: p => p.JugadorId > 0);
+    }
+
+    private async Task Buscar()
+    {
+        ValorFiltro = ValorFiltro?.Trim() ?? string.Empty;
+        // ListaJugadores = await JugadoresServices.Listar(criterio: p => p.Nombres.Contains(ValorFiltro));
+        if (!string.IsNullOrEmpty(ValorFiltro))
+        {
+            ListaPartidas = await PartidasServices.Listar(
+                criterio: p => !string.IsNullOrEmpty(p.EstadoPartida) && p.EstadoPartida.Contains(ValorFiltro)
+            );
+        }
+        else
+        {
+            ListaPartidas = await PartidasServices.Listar(criterio: p => p.PartidaId > 0);
+        }
+
+        StateHasChanged(); //Forzar refresco
+    }
+
+    private List<Jugadores> ListaJugadores { get; set; } = new();
+
+    private string NombresId(int id)
+    {
+        foreach (var jugadorId in ListaJugadores)
+        {
+            if (jugadorId.JugadorId == id)
+            {
+                return jugadorId.Nombres;
+            }
+        }
+
+        return "Nulo";
+
+    }
+
+    private async Task EliminarJugador(int jugadorId)
+    {
+        var eliminado = await PartidasServices.Eliminar(jugadorId);
+        if (eliminado)
+        {
+            var jugador = ListaPartidas.FirstOrDefault(j => j.PartidaId == jugadorId);
+            if (jugador != null)
+                ListaPartidas.Remove(jugador);
+        }
+
+    }
+}
+
